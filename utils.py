@@ -5,20 +5,56 @@ import cv2
 import numpy as np
 import pandas as pd
 
-DATA_DIR = '/media/chicm/NVME/open-images'
-IMG_DIR = '/media/chicm/NVME/open-images'
+DATA_DIR = r'G:\open-images'
+IMG_DIR = r'G:\open-images\224'
+VAL_FILE = 'challenge-2018-image-ids-valset-od.csv'
+CLASS_FILE = 'challenge-2018-class-descriptions-500.csv'
+
+#DATA_DIR = '/media/chicm/NVME/open-images'
+#IMG_DIR = '/media/chicm/NVME/open-images'
 MC_CSV = 'mc.csv'
 MBB_CSV = 'mbb.csv'
 
+def get_classes():
+    classes = []
+    fn = os.path.join(DATA_DIR, CLASS_FILE)
+    with open(fn, 'r') as f:
+        for line in f:
+            classes.append(line.strip().split(',')[0])
+    return classes
+
+def get_val_ids():
+    val_ids = []
+    fn = os.path.join(DATA_DIR, VAL_FILE)
+    with open(fn, 'r') as f:
+        for i, line in enumerate(f):
+            if i == 0:
+                continue
+            val_ids.append(line.strip())
+    return val_ids
+
+
+def get_train_ids():
+    filenames = glob.glob(os.path.join(IMG_DIR, '*.jpg'))
+    #print(len(filenames))
+    img_ids = [os.path.basename(fn).split('.')[0] for fn in filenames]
+    valset = set(get_val_ids())
+    img_ids = [img_id for img_id in img_ids if not img_id in valset]
+    #print(len(img_ids))
+    return img_ids
+
 def build_bbox_dict():
     bbox_file = 'challenge-2018-train-annotations-bbox.csv'
-    bbox_dict = collections.defaultdict(lambda: [])
+    bbox_dict = {} #collections.defaultdict(lambda: [])
     with open(os.path.join(DATA_DIR, bbox_file), 'r') as f:
         for i, line in enumerate(f):
             if i == 0:
                 continue
             row = line.strip().split(',')
-            bbox_dict[row[0]].append((row[2], [float(row[4]), float(row[6]), float(row[5]), float(row[7])]))
+            if row[0] in bbox_dict:
+                bbox_dict[row[0]].append((row[2], [float(row[4]), float(row[6]), float(row[5]), float(row[7])]))
+            else:
+                bbox_dict[row[0]] = []
     return bbox_dict
 
 def draw_img(name, image, resize=1):
