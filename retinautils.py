@@ -6,6 +6,7 @@ import math
 
 import torch
 import torch.nn as nn
+import pdb
 
 
 def get_mean_and_std(dataset, max_load=10000):
@@ -106,6 +107,8 @@ def change_box_order(boxes, order):
       (tensor) converted bounding boxes, sized [N,4].
     '''
     assert order in ['xyxy2xywh','xywh2xyxy']
+    print('2>>>')
+    print(boxes.size())
     a = boxes[:,:2]
     b = boxes[:,2:]
     if order == 'xyxy2xywh':
@@ -239,7 +242,7 @@ def msr_init(net):
         elif type(layer) == nn.Linear:
             layer.bias.data.zero_()
 
-_, term_width = os.popen('stty size', 'r').read().split()
+_, term_width = 30, 80 #os.popen('stty size', 'r').read().split()
 term_width = int(term_width)
 TOTAL_BAR_LENGTH = 86.
 last_time = time.time()

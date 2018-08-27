@@ -2,12 +2,13 @@
 import math
 import torch
 
-from utils import meshgrid, box_iou, box_nms, change_box_order
-
+from retinautils import meshgrid, box_iou, box_nms, change_box_order
+import pdb
 
 class DataEncoder:
     def __init__(self):
         self.anchor_areas = [32*32., 64*64., 128*128., 256*256., 512*512.]  # p3 -> p7
+        #self.anchor_areas = [28*28, 56*56, 112*112, 224*224]
         self.aspect_ratios = [1/2., 1/1., 2/1.]
         self.scale_ratios = [1., pow(2,1/3.), pow(2,2/3.)]
         self.anchor_wh = self._get_anchor_wh()
@@ -76,6 +77,7 @@ class DataEncoder:
         input_size = torch.Tensor([input_size,input_size]) if isinstance(input_size, int) \
                      else torch.Tensor(input_size)
         anchor_boxes = self._get_anchor_boxes(input_size)
+        
         boxes = change_box_order(boxes, 'xyxy2xywh')
 
         ious = box_iou(anchor_boxes, boxes, order='xywh')

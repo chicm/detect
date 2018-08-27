@@ -4,13 +4,15 @@ import numpy as np
 import torch
 import torch.utils.data as data
 from torchvision import datasets, models, transforms
-from utils import get_classes, get_train_ids, get_val_ids, load_bbox_dict
+from utils import get_classes, get_boxed_train_ids, get_val_ids, load_bbox_dict
+from encoder import DataEncoder
 import settings
 
 IMG_DIR = settings.IMG_DIR
 
 class ImageDataset(data.Dataset):
     def __init__(self, img_ids, bbox_dict, has_label=True):
+        self.input_size = 512
         self.img_ids = img_ids
         self.num = len(img_ids)
         self.bbox_dict = bbox_dict
@@ -19,13 +21,31 @@ class ImageDataset(data.Dataset):
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
+        self.boxes = []
+        self.labels = []
+
+        self.encoder = DataEncoder()
+
+        for img_id in self.img_ids:
+            box = []
+            label = []
+            if img_id in self.bbox_dict:
+                for x in self.bbox_dict[img_id]:
+                    box.append(x[1])
+                    label.append(x[0])
+            else:
+                raise ValueError('No bbox: {}'.format(img_id))
+            self.boxes.append(torch.Tensor(box))
+            self.labels.append(torch.LongTensor(label))
+
+
 
     def __getitem__(self, index):
         fn = os.path.join(IMG_DIR, '{}.jpg'.format(self.img_ids[index]))
         img = cv2.imread(fn)
         img = self.transform(img)
         
-        return img, self.img_ids[index]
+        return img, self.boxes[index], self.labels[index]
 
     def __len__(self):
         return self.num
@@ -40,36 +60,40 @@ class ImageDataset(data.Dataset):
           images, stacked bbox_targets, stacked clf_targets.
         """
         imgs = [x[0] for x in batch]
-        inputs = torch.stack(imgs)
-        
-        clfs = []
-        bboxes = []
-        for _, img_id in batch:
-            if not img_id in self.bbox_dict:
-                continue
-            img_labels = self.bbox_dict[img_id]  # [(cls, [x1, y1, x2, y2]), (...)...]
-            clf = [x[0] for x in img_labels]
-            clfs.append(clf)
-            bbox = [x[1] for x in img_labels]
-            bboxes.append(bbox)
+        boxes = [x[1] for x in batch]
+        labels = [x[2] for x in batch]
 
-        return inputs.cuda(), clfs, bboxes
+        h = w = self.input_size
+        num_imgs = len(imgs)
+        inputs = torch.zeros(num_imgs, 3, h, w)
+
+        loc_targets = []
+        cls_targets = []
+        for i in range(num_imgs):
+            inputs[i] = imgs[i]
+            print('1>>>')
+            print(boxes[i].size(), labels[i].size())
+            loc_target, cls_target = self.encoder.encode(boxes[i], labels[i], input_size=(w,h))
+            loc_targets.append(loc_target)
+            cls_targets.append(cls_target)
+        return inputs, torch.stack(loc_targets), torch.stack(cls_targets)
         '''
-        boxes = [x[1][0] for x in batch]
-        labels = [x[1][1] for x in batch]
+        imgs = [x[0] for x in batch]
+        boxes = [x[1] for x in batch]
+        labels = [x[2] for x in batch]
 
-        inputs = torch.stack(imgs)
-        input_size = torch.Tensor(list(inputs.size()[-2:]))
-        bbox_targets, clf_targets = [], []
-        for box, label in zip(boxes, labels):
-            bbox_target, clf_target = self.target_encoder.encode(box, label, input_size=input_size)
-            bbox_targets.append(bbox_target)
-            clf_targets.append(clf_target)
+        h = w = self.input_size
+        num_imgs = len(imgs)
+        inputs = torch.zeros(num_imgs, 3, h, w)
 
-        bbox_targets, clf_targets = torch.stack(bbox_targets), torch.stack(clf_targets)
-        clf_targets = clf_targets.unsqueeze(-1)
-        targets = torch.cat((bbox_targets, clf_targets), 2)
-        return inputs, targets
+        loc_targets = []
+        cls_targets = []
+        for i in range(num_imgs):
+            inputs[i] = imgs[i]
+            loc_target, cls_target = self.encoder.encode(boxes[i], labels[i], input_size=(w,h))
+            loc_targets.append(loc_target)
+            cls_targets.append(cls_target)
+        return inputs, torch.stack(loc_targets), torch.stack(cls_targets)
         '''
 
 class ImageDataLoader(object):
@@ -102,9 +126,12 @@ class ImageDataLoader(object):
         imgs = torch.FloatTensor(imgs).cuda()
         return ids, imgs
 
-def get_train_loader(batch_size=64, shuffle = True):
-    img_ids = get_train_ids()
+def get_train_loader(batch_size=4, shuffle = True):
     bbox_dict = load_bbox_dict()
+    img_ids = get_boxed_train_ids(bbox_dict, img_dir=r'D:\data\detect\train\512_1')
+    print(len(img_ids))
+    print(img_ids[:10])
+
     dset = ImageDataset(img_ids, bbox_dict, True)
     dloader = data.DataLoader(dset, batch_size=batch_size, shuffle=shuffle, num_workers=4, collate_fn=dset.collate_fn)
     dloader.num = dset.num
@@ -116,8 +143,8 @@ def test_loader():
     for i, data in enumerate(loader):
         #if i > 10:
         #    break
-        imgs, clfs, bbox = data
-        print(clfs, bbox, imgs.size())
+        imgs, bbox, clfs = data
+        #print(imgs.size(), bbox.size(), clfs.size())
 
 if __name__ == '__main__':
     test_loader()

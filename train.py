@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import argparse
 
@@ -10,9 +12,9 @@ import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 
-from retina.loss import FocalLoss
-from retina.retinanet import RetinaNet
-#from datagen import ListDataset
+from loss import FocalLoss
+from retinanet import RetinaNet
+from datagen import ListDataset
 
 from torch.autograd import Variable
 

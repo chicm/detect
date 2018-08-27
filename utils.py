@@ -49,14 +49,20 @@ def get_val_ids():
             val_ids.append(line.strip())
     return val_ids
 
-
-def get_train_ids():
-    filenames = glob.glob(os.path.join(IMG_DIR, '*.jpg'))
+def get_train_ids(img_dir = IMG_DIR):
+    filenames = glob.glob(os.path.join(img_dir, '*.jpg'))
     #print(len(filenames))
     img_ids = [os.path.basename(fn).split('.')[0] for fn in filenames]
     valset = set(get_val_ids())
     img_ids = [img_id for img_id in img_ids if not (img_id in valset or img_id in BAD_IMG_IDS)]
     #print(len(img_ids))
+    return img_ids
+
+def get_boxed_train_ids(bbox_dict, img_dir=IMG_DIR, max_num = None):
+    img_ids = get_train_ids(img_dir)
+    img_ids = [img_id for img_id in img_ids if img_id in bbox_dict]
+    if not (max_num is None):
+        return img_ids[:max_num]
     return img_ids
 
 def build_bbox_dict(cls_stoi):
@@ -66,11 +72,12 @@ def build_bbox_dict(cls_stoi):
             if i == 0:
                 continue
             row = line.strip().split(',')
+            value = (cls_stoi[row[2]], [float(row[4]), float(row[6]), float(row[5]), float(row[7])])
             if row[0] in bbox_dict:
                 # return (class, [x1, y1, x2, y2])
-                bbox_dict[row[0]].append((cls_stoi[row[2]], [float(row[4]), float(row[6]), float(row[5]), float(row[7])]))
+                bbox_dict[row[0]].append(value)
             else:
-                bbox_dict[row[0]] = []
+                bbox_dict[row[0]] = [value]
     with open(BBOX_BIN_FILE, 'wb') as f:
         pickle.dump(bbox_dict, f)
     return bbox_dict
@@ -154,10 +161,11 @@ def test_show():
     #filenames = glob.glob(IMG_DIR, '*.jpg'))
     #img_ids = os.path.basename(filenames[5]).split('.')[0]
     #show_img_with_label2(img_id)
-    img_id = '6f4e88d1573905ac'
+    img_id = '0000a1b2fba255e9'
     img = cv2.imread(get_fn(img_id))
     bbox_dict = load_bbox_dict()
     bbox = bbox_dict[img_id] #[(10, [0.0, 0.086875, 0.713884, 0.52375]), (29, [0.396811, 0.1575, 0.999062, 0.999375]), (251, [0.090056, 0.091875, 0.741088, 0.35625])]
+    print(bbox)
     show_img_with_label(img, bbox)
 
 #import sys
@@ -201,8 +209,10 @@ def test_bboxes():
     print(count)
 
 if __name__ == '__main__':
-    test_bboxes()
-    #test_show()
+    #itos, stoi = get_class_id_converters()
+    #build_bbox_dict(stoi)
+    #test_bboxes()
+    test_show()
     #test_class_converters()
 
     #start = time.time()

@@ -3,7 +3,7 @@ import glob
 import cv2
 import argparse
 
-H, W = 224, 224
+H, W = 512, 512
 
 def resize(src_dir, tgt_dir):
     filenames = glob.glob(os.path.join(src_dir, '*.jpg'))
