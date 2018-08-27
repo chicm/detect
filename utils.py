@@ -188,6 +188,17 @@ def test_show():
     print(bbox)
     show_img_with_label(img, bbox)
 
+
+_running_loss = []
+
+def running_loss(loss, nbatchs=100):
+    global _running_loss
+    _running_loss.append(loss)
+    if len(_running_loss) > nbatchs:
+        del _running_loss[0]
+
+    return sum(_running_loss) / len(_running_loss)
+
 #import sys
 #if __name__ == '__main__':
 '''
