@@ -18,7 +18,7 @@ from datagen import ListDataset
 
 from torch.autograd import Variable
 
-from imgdataset import get_train_loader
+from imgdataset import get_train_loader, get_small_train_loader
 import settings
 
 def run_train(args):
@@ -33,22 +33,27 @@ def run_train(args):
         transforms.Normalize((0.485,0.456,0.406), (0.229,0.224,0.225))
     ])
 
-    trainloader = get_train_loader(img_dir=settings.IMG_DIR)
+    #trainloader = get_train_loader(img_dir=settings.IMG_DIR)
+    trainloader = get_small_train_loader()
+    print(trainloader.num)
     #testloader = get_train_loader(img_dir=settings.IMG_DIR)
 
     # Model
     net = RetinaNet()
+    #net.load_state_dict(torch.load('./model/net.pth'))
+    net.load_state_dict(torch.load('./model/best_224.pth'))
     net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     net.cuda()
 
     criterion = FocalLoss()
-    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
+    #optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
+    optimizer = optim.Adam(net.parameters(), lr=args.lr)
 
     # Training
-    for epoch in range(start_epoch, start_epoch+200):
+    for epoch in range(start_epoch, start_epoch+100):
         print('\nEpoch: %d' % epoch)
         net.train()
-        net.module.freeze_bn()
+        #net.module.freeze_bn()
         train_loss = 0
         for batch_idx, (inputs, loc_targets, cls_targets) in enumerate(trainloader):
             inputs = Variable(inputs.cuda())
@@ -63,6 +68,8 @@ def run_train(args):
 
             train_loss += loss.data[0]
             print('train_loss: %.3f | avg_loss: %.3f' % (loss.data[0], train_loss/(batch_idx+1)))
+
+        torch.save(net.module.state_dict(), './model/best.pth')
 
 # Test
 def test(epoch):
@@ -97,7 +104,7 @@ def test(epoch):
 if __name__ == '__main__':
         
     parser = argparse.ArgumentParser(description='PyTorch RetinaNet Training')
-    parser.add_argument('--lr', default=1e-3, type=float, help='learning rate')
+    parser.add_argument('--lr', default=1e-5, type=float, help='learning rate')
     parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
     args = parser.parse_args()
     

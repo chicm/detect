@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.utils.data as data
 from torchvision import datasets, models, transforms
-from utils import get_classes, get_boxed_train_ids, get_val_ids, load_bbox_dict
+from utils import get_classes, get_boxed_train_ids, get_val_ids, load_bbox_dict, load_small_train_ids, get_class_names
 from encoder import DataEncoder
 import settings
 
@@ -12,7 +12,7 @@ IMG_DIR = settings.IMG_DIR
 
 class ImageDataset(data.Dataset):
     def __init__(self, img_ids, bbox_dict, has_label=True):
-        self.input_size = 512
+        self.input_size = settings.IMG_SZ
         self.img_ids = img_ids
         self.num = len(img_ids)
         self.bbox_dict = bbox_dict
@@ -36,7 +36,7 @@ class ImageDataset(data.Dataset):
             else:
                 raise ValueError('No bbox: {}'.format(img_id))
             self.boxes.append(torch.Tensor(box)*self.input_size) # 
-            self.labels.append(torch.LongTensor(label)*self.input_size) #
+            self.labels.append(torch.LongTensor(label)) #
 
 
 
@@ -44,6 +44,7 @@ class ImageDataset(data.Dataset):
         fn = os.path.join(IMG_DIR, '{}.jpg'.format(self.img_ids[index]))
         img = cv2.imread(fn)
         img = self.transform(img)
+        print(get_class_names(self.labels[index]))
         
         return img, self.boxes[index], self.labels[index]
 
@@ -137,14 +138,23 @@ def get_train_loader(img_dir=IMG_DIR, batch_size=4, shuffle = True):
     dloader.num = dset.num
     return dloader
 
+def get_small_train_loader():
+    small_dict, img_ids = load_small_train_ids()
+    print(img_ids[:10])
+    dset = ImageDataset(img_ids[:10], small_dict)
+    dloader = data.DataLoader(dset, batch_size=2, shuffle=False, num_workers=4, collate_fn=dset.collate_fn)
+    dloader.num = dset.num
+    return dloader
+
 def test_loader():
     #loader = ImageDataLoader(get_train_ids())
-    loader = get_train_loader()
+    loader = get_small_train_loader()
     for i, data in enumerate(loader):
-        #if i > 10:
-        #    break
         imgs, bbox, clfs = data
         print(imgs.size(), bbox.size(), clfs.size())
+        print(torch.max(bbox))
 
 if __name__ == '__main__':
     test_loader()
+    #small_dict, img_ids = load_small_train_ids()
+    #print(img_ids[:10])

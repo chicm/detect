@@ -13,6 +13,7 @@ VAL_FILE = settings.VAL_FILE
 CLASS_FILE = settings.CLASS_FILE
 BBOX_FILE = settings.BBOX_FILE
 BBOX_BIN_FILE = os.path.join(settings.DATA_DIR, 'bbox.pk')
+BBOX_BIN_FILE_SMALL = os.path.join(settings.DATA_DIR, 'bbox_small.pk')
 
 BAD_IMG_IDS = set([])
 
@@ -30,7 +31,6 @@ def get_class_dict():
     class_dict = {}
     with open(CLASS_FILE, 'r') as f:
         for line in f:
-            print(line)
             k, v = line.strip().split(',')
             class_dict[k] = v
     return class_dict
@@ -39,6 +39,12 @@ def get_class_id_converters():
     itos = get_classes()
     stoi = {itos[i]: i for i in range(len(itos))}
     return itos, stoi
+
+def get_class_names(ids):
+    c_dict = get_class_dict()
+    itos, stoi = get_class_id_converters()
+
+    return [c_dict[itos[i]] for i in ids]
 
 def get_val_ids():
     val_ids = []
@@ -81,6 +87,20 @@ def build_bbox_dict(cls_stoi):
     with open(BBOX_BIN_FILE, 'wb') as f:
         pickle.dump(bbox_dict, f)
     return bbox_dict
+
+def build_small_bbox_dict(img_dir=IMG_DIR, num=1000):
+    bbox_dict = load_bbox_dict()
+    img_ids = get_boxed_train_ids(bbox_dict)[:num]
+    small_dict = {k: bbox_dict[k] for k in img_ids}
+    with open(BBOX_BIN_FILE_SMALL, 'wb') as f:
+        pickle.dump(small_dict, f)
+    print(len(small_dict))
+
+def load_small_train_ids():
+    with open(BBOX_BIN_FILE_SMALL, 'rb') as f:
+        small_dict = pickle.load(f)
+    img_ids = list(small_dict.keys())
+    return small_dict, img_ids
 
 def load_bbox_dict():
     with open(BBOX_BIN_FILE, 'rb') as f:
@@ -214,7 +234,13 @@ if __name__ == '__main__':
     #build_bbox_dict(stoi)
     #test_bboxes()
     #test_show()
-    test_class_converters()
+    #test_class_converters()
+    build_small_bbox_dict()
+    d, imgids = load_small_train_ids()
+    print(imgids[:10])
+    for imgid in imgids[:10]:
+        print(d[imgid])
+
 
     #start = time.time()
     #print(len(build_bbox_dict()))
