@@ -107,8 +107,8 @@ def change_box_order(boxes, order):
       (tensor) converted bounding boxes, sized [N,4].
     '''
     assert order in ['xyxy2xywh','xywh2xyxy']
-    print('2>>>')
-    print(boxes.size())
+    #print('2>>>')
+    #print(boxes.size())
     a = boxes[:,:2]
     b = boxes[:,2:]
     if order == 'xyxy2xywh':

@@ -35,8 +35,8 @@ class ImageDataset(data.Dataset):
                     label.append(x[0])
             else:
                 raise ValueError('No bbox: {}'.format(img_id))
-            self.boxes.append(torch.Tensor(box))
-            self.labels.append(torch.LongTensor(label))
+            self.boxes.append(torch.Tensor(box)*self.input_size) # 
+            self.labels.append(torch.LongTensor(label)*self.input_size) #
 
 
 
@@ -71,8 +71,8 @@ class ImageDataset(data.Dataset):
         cls_targets = []
         for i in range(num_imgs):
             inputs[i] = imgs[i]
-            print('1>>>')
-            print(boxes[i].size(), labels[i].size())
+            #print('1>>>')
+            #print(boxes[i].size(), labels[i].size())
             loc_target, cls_target = self.encoder.encode(boxes[i], labels[i], input_size=(w,h))
             loc_targets.append(loc_target)
             cls_targets.append(cls_target)
@@ -126,11 +126,11 @@ class ImageDataLoader(object):
         imgs = torch.FloatTensor(imgs).cuda()
         return ids, imgs
 
-def get_train_loader(batch_size=4, shuffle = True):
+def get_train_loader(img_dir=IMG_DIR, batch_size=4, shuffle = True):
     bbox_dict = load_bbox_dict()
-    img_ids = get_boxed_train_ids(bbox_dict, img_dir=r'D:\data\detect\train\512_1')
-    print(len(img_ids))
-    print(img_ids[:10])
+    img_ids = get_boxed_train_ids(bbox_dict, img_dir=img_dir)
+    #print(len(img_ids))
+    #print(img_ids[:10])
 
     dset = ImageDataset(img_ids, bbox_dict, True)
     dloader = data.DataLoader(dset, batch_size=batch_size, shuffle=shuffle, num_workers=4, collate_fn=dset.collate_fn)
@@ -144,7 +144,7 @@ def test_loader():
         #if i > 10:
         #    break
         imgs, bbox, clfs = data
-        #print(imgs.size(), bbox.size(), clfs.size())
+        print(imgs.size(), bbox.size(), clfs.size())
 
 if __name__ == '__main__':
     test_loader()

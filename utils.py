@@ -191,6 +191,7 @@ def test():
 '''
 def test_class_converters():
     itos, stoi = get_class_id_converters()
+    print(len(itos))
     indices = [1, 5, 10, 118, 225, 499]
     clas = [itos[i] for i in indices]
     print(clas)
@@ -212,8 +213,8 @@ if __name__ == '__main__':
     #itos, stoi = get_class_id_converters()
     #build_bbox_dict(stoi)
     #test_bboxes()
-    test_show()
-    #test_class_converters()
+    #test_show()
+    test_class_converters()
 
     #start = time.time()
     #print(len(build_bbox_dict()))

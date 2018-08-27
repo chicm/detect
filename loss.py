@@ -4,12 +4,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from retianutils import one_hot_embedding
+from retinautils import one_hot_embedding
 from torch.autograd import Variable
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, num_classes=20):
+    def __init__(self, num_classes=500):
         super(FocalLoss, self).__init__()
         self.num_classes = num_classes
 
