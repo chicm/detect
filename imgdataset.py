@@ -44,7 +44,7 @@ class ImageDataset(data.Dataset):
         fn = os.path.join(IMG_DIR, '{}.jpg'.format(self.img_ids[index]))
         img = cv2.imread(fn)
         img = self.transform(img)
-        print(get_class_names(self.labels[index]))
+        #print(get_class_names(self.labels[index]))
         
         return img, self.boxes[index], self.labels[index]
 
@@ -78,24 +78,6 @@ class ImageDataset(data.Dataset):
             loc_targets.append(loc_target)
             cls_targets.append(cls_target)
         return inputs, torch.stack(loc_targets), torch.stack(cls_targets)
-        '''
-        imgs = [x[0] for x in batch]
-        boxes = [x[1] for x in batch]
-        labels = [x[2] for x in batch]
-
-        h = w = self.input_size
-        num_imgs = len(imgs)
-        inputs = torch.zeros(num_imgs, 3, h, w)
-
-        loc_targets = []
-        cls_targets = []
-        for i in range(num_imgs):
-            inputs[i] = imgs[i]
-            loc_target, cls_target = self.encoder.encode(boxes[i], labels[i], input_size=(w,h))
-            loc_targets.append(loc_target)
-            cls_targets.append(cls_target)
-        return inputs, torch.stack(loc_targets), torch.stack(cls_targets)
-        '''
 
 class ImageDataLoader(object):
     def __init__(self, img_ids, shuffle=True, batch_size=64, transform=None):
@@ -127,11 +109,11 @@ class ImageDataLoader(object):
         imgs = torch.FloatTensor(imgs).cuda()
         return ids, imgs
 
-def get_train_loader(img_dir=IMG_DIR, batch_size=4, shuffle = True):
+def get_train_loader(img_dir=IMG_DIR, batch_size=8, shuffle = True):
     bbox_dict = load_bbox_dict()
     img_ids = get_boxed_train_ids(bbox_dict, img_dir=img_dir)
-    #print(len(img_ids))
-    #print(img_ids[:10])
+    print(len(img_ids))
+    print(img_ids[:10])
 
     dset = ImageDataset(img_ids, bbox_dict, True)
     dloader = data.DataLoader(dset, batch_size=batch_size, shuffle=shuffle, num_workers=4, collate_fn=dset.collate_fn)
