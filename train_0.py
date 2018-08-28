@@ -41,7 +41,7 @@ def run_train(args):
     # Model
     net = RetinaNet()
     #net.load_state_dict(torch.load('./model/net.pth'))
-    net.load_state_dict(torch.load('./ckps/best_2.pth'))
+    net.load_state_dict(torch.load('./ckps/best_3.pth'))
     net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     net.cuda()
 
@@ -109,7 +109,7 @@ def test(epoch):
 if __name__ == '__main__':
         
     parser = argparse.ArgumentParser(description='PyTorch RetinaNet Training')
-    parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
+    parser.add_argument('--lr', default=1e-5, type=float, help='learning rate')
     parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
     args = parser.parse_args()
     
