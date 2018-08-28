@@ -64,6 +64,10 @@ def get_train_ids(img_dir = IMG_DIR):
     #print(len(img_ids))
     return img_ids
 
+def get_test_ids():
+    df = pd.read_csv(settings.SAMPLE_SUB_FILE)
+    return df.values[:, 0].tolist()
+
 def get_boxed_train_ids(bbox_dict, img_dir=IMG_DIR, max_num = None):
     img_ids = get_train_ids(img_dir)
     img_ids = [img_id for img_id in img_ids if img_id in bbox_dict]
