@@ -72,7 +72,7 @@ def predict():
         loc_preds, cls_preds = net(inputs)
         print('{} / {}  {:.2f}'.format(batch_size*(batch_idx+1), dloader.num, (time.time() - bgtime)/60), end='\r')
         for i in range(len(loc_preds)):
-            boxes, labels, scores = encoder.decode(loc_preds[i].data.cpu(), cls_preds[i].data.cpu(), (settings.IMG_SZ, settings.IMG_SZ))
+            boxes, labels, scores = encoder.decode(loc_preds[i].data, cls_preds[i].data, (settings.IMG_SZ, settings.IMG_SZ))
             prediction_strings.append(_get_prediction_string(boxes, labels, scores))
     print(len(prediction_strings))
     print(prediction_strings[:3])

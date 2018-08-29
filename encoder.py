@@ -1,7 +1,7 @@
 '''Encode object boxes and labels.'''
 import math
 import torch
-
+import settings
 from retinautils import meshgrid, box_iou, box_nms, change_box_order
 import pdb
 
@@ -12,7 +12,8 @@ class DataEncoder:
         self.aspect_ratios = [1/2., 1/1., 2/1.]
         self.scale_ratios = [1., pow(2,1/3.), pow(2,2/3.)]
         self.anchor_wh = self._get_anchor_wh()
-        self.class_threshold = 0.21
+        self.class_threshold = 0.208
+        self.anchor_boxes = self._get_anchor_boxes(torch.Tensor([settings.IMG_SZ, settings.IMG_SZ])).cuda()
 
     def _get_anchor_wh(self):
         '''Compute anchor width and height for each feature map.
@@ -112,7 +113,7 @@ class DataEncoder:
 
         input_size = torch.Tensor([input_size,input_size]) if isinstance(input_size, int) \
                      else torch.Tensor(input_size)
-        anchor_boxes = self._get_anchor_boxes(input_size)
+        anchor_boxes = self.anchor_boxes #_get_anchor_boxes(input_size)
 
         loc_xy = loc_preds[:,:2]
         loc_wh = loc_preds[:,2:]
@@ -126,5 +127,5 @@ class DataEncoder:
         if ids.sum() < 0.5:
               return [], [], []
         ids = ids.nonzero().squeeze()             # [#obj,]
-        keep = box_nms(boxes[ids], score[ids], threshold=NMS_THRESH)
-        return boxes[ids][keep].tolist(), labels[ids][keep].tolist(), score[ids][keep].tolist()
+        keep = box_nms(boxes[ids], score[ids], threshold=NMS_THRESH).cuda()
+        return boxes[ids][keep].cpu().tolist(), labels[ids][keep].cpu().tolist(), score[ids][keep].cpu().tolist()
