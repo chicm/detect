@@ -12,6 +12,7 @@ class DataEncoder:
         self.aspect_ratios = [1/2., 1/1., 2/1.]
         self.scale_ratios = [1., pow(2,1/3.), pow(2,2/3.)]
         self.anchor_wh = self._get_anchor_wh()
+        self.class_threshold = 0.21
 
     def _get_anchor_wh(self):
         '''Compute anchor width and height for each feature map.
@@ -106,7 +107,7 @@ class DataEncoder:
           boxes: (tensor) decode box locations, sized [#obj,4].
           labels: (tensor) class labels for each box, sized [#obj,].
         '''
-        CLS_THRESH = 0.2
+        CLS_THRESH = self.class_threshold #0.2
         NMS_THRESH = 0.5
 
         input_size = torch.Tensor([input_size,input_size]) if isinstance(input_size, int) \

@@ -131,9 +131,17 @@ def get_train_loader(img_dir=IMG_DIR, batch_size=8, shuffle = True):
     dloader.num = dset.num
     return dloader
 
-def get_test_loader(img_dir=settings.TEST_IMG_DIR, batch_size=16):
-    img_ids = get_test_ids()
+def get_test_loader(img_ids, img_dir=settings.TEST_IMG_DIR, batch_size=16):
     dset = ImageDataset(img_ids, img_dir, None, False)
+    dloader = data.DataLoader(dset, batch_size=batch_size, shuffle=False, num_workers=4, collate_fn=dset.collate_fn, drop_last=False)
+    dloader.num = dset.num
+    dloader.img_ids = img_ids
+    return dloader
+
+def get_val_loader(img_dir=settings.IMG_DIR, batch_size=16):
+    img_ids = get_val_ids()[:500]
+    bbox_dict = load_bbox_dict()
+    dset = ImageDataset(img_ids, img_dir, bbox_dict, True)
     dloader = data.DataLoader(dset, batch_size=batch_size, shuffle=False, num_workers=4, collate_fn=dset.collate_fn, drop_last=False)
     dloader.num = dset.num
     dloader.img_ids = img_ids

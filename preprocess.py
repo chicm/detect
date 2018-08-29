@@ -5,7 +5,8 @@ import pandas as pd
 import torch
 import torch.utils.data as data
 from torchvision import datasets, models, transforms
-from utils import get_classes, build_bbox_dict
+from utils import get_classes, build_bbox_dict, get_class_id_converters, \
+    build_bbox_dict, build_small_bbox_dict, load_small_train_ids, get_val_ids
 import settings
 
 def check_classes():
@@ -34,6 +35,21 @@ def check_test_ids():
     print(len(submit_ids))
     assert(set(test_img_ids) == set(submit_ids))
 
+
+def build_dict():
+    itos, stoi = get_class_id_converters()
+    build_bbox_dict(stoi)
+    #test_bboxes()
+    #test_show()
+    #test_class_converters()
+    build_small_bbox_dict()
+    d, imgids = load_small_train_ids()
+    print(imgids[:10])
+    for imgid in imgids[:10]:
+        print(d[imgid])
+
+
 if __name__ == '__main__':
     #check_classes()
-    check_test_ids()
+    #check_test_ids()
+    print(get_val_ids()[:10])

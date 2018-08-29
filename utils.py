@@ -245,8 +245,8 @@ def test_bboxes():
     print(count)
 
 if __name__ == '__main__':
-    #itos, stoi = get_class_id_converters()
-    #build_bbox_dict(stoi)
+    itos, stoi = get_class_id_converters()
+    build_bbox_dict(stoi)
     #test_bboxes()
     #test_show()
     #test_class_converters()
