@@ -18,12 +18,18 @@ from datagen import ListDataset
 
 from torch.autograd import Variable
 import time
-
+import logging as log
 from imgdataset import get_train_loader, get_small_train_loader
 from utils import running_loss
 import settings
 
 batch_size = 12
+
+log.basicConfig(
+        filename = 'trainlog.txt', 
+        format   = '%(asctime)s : %(message)s',
+        datefmt  = '%Y-%m-%d %H:%M:%S', 
+        level = log.DEBUG)
 
 def run_train(args):
     assert torch.cuda.is_available(), 'Error: CUDA not found!'
@@ -70,11 +76,13 @@ def run_train(args):
 
             #train_loss += loss.data[0]
             sample_num = (batch_idx+1)*batch_size
+            avg_loss = running_loss(loss.data[0])
             print('Epoch: {}, num: {}/{} train_loss: {:.3f} | run_loss: {:.3f} min: {:.1f}'.format(
-                epoch, sample_num, trainloader.num, loss.data[0], running_loss(loss.data[0]), (time.time() - bgtime)/60), end='\r')
+                epoch, sample_num, trainloader.num, loss.data[0], avg_loss, (time.time() - bgtime)/60), end='\r')
 
             if batch_idx % iter_save == 0:
                 torch.save(net.module.state_dict(), './ckps/best_{}.pth'.format(batch_idx//iter_save % 5))
+                log.info('batch: {}, loss: {:.4f}'.format(batch_idx, avg_loss))
 
 # Test
 def test(epoch):
