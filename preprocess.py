@@ -37,8 +37,8 @@ def check_test_ids():
 
 
 def build_dict():
-    itos, stoi = get_class_id_converters()
-    build_bbox_dict(stoi)
+    #itos, stoi = get_class_id_converters()
+    #build_bbox_dict(stoi)
     #test_bboxes()
     #test_show()
     #test_class_converters()
@@ -52,4 +52,5 @@ def build_dict():
 if __name__ == '__main__':
     #check_classes()
     #check_test_ids()
-    print(get_val_ids()[:10])
+    #print(get_val_ids()[:10])
+    build_dict()

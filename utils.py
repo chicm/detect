@@ -95,7 +95,9 @@ def build_bbox_dict(cls_stoi):
 def build_small_bbox_dict(img_dir=IMG_DIR, num=1000):
     bbox_dict = load_bbox_dict()
     img_ids = get_boxed_train_ids(bbox_dict)[:num]
-    small_dict = {k: bbox_dict[k] for k in img_ids}
+    val_img_ids = get_val_ids()[:num]
+    img_ids.extend(val_img_ids)
+    small_dict = {k: bbox_dict[k] for k in img_ids if k in bbox_dict}
     with open(BBOX_BIN_FILE_SMALL, 'wb') as f:
         pickle.dump(small_dict, f)
     print(len(small_dict))

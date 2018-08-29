@@ -55,7 +55,7 @@ def run_train(args):
     #optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
 
-    iter_save = 100
+    iter_save = 200
     bgtime = time.time()
     # Training
     for epoch in range(start_epoch, start_epoch+100):
@@ -117,7 +117,7 @@ def test(epoch):
 if __name__ == '__main__':
         
     parser = argparse.ArgumentParser(description='PyTorch RetinaNet Training')
-    parser.add_argument('--lr', default=1e-5, type=float, help='learning rate')
+    parser.add_argument('--lr', default=5e-5, type=float, help='learning rate')
     parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
     args = parser.parse_args()
     

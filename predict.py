@@ -16,7 +16,7 @@ from utils import load_small_train_ids, get_class_names, get_class_id_converters
 from imgdataset import get_test_loader, get_val_loader
 
 CKP_FILE = './ckps/best_3.pth'
-batch_size = 24
+batch_size = 28
 
 itos, stoi = get_class_id_converters()
 
@@ -77,16 +77,14 @@ def predict():
     print(len(prediction_strings))
     print(prediction_strings[:3])
     submission = pd.DataFrame({'ImageId': dloader.img_ids, 'PredictionString': prediction_strings})
-    submission.to_csv('sub1.csv', index=False)
+    submission.to_csv('sub3.csv', index=False)
 
 def evaluate_threshold(img_ids, cls_threshold, bbox_dict):
-    print('==> Loading data..')
 
     dloader = get_test_loader(img_ids, img_dir=settings.IMG_DIR, batch_size=batch_size)
     
     # Model
     net = RetinaNet()
-    print('==> Loading model..')
     net.load_state_dict(torch.load(CKP_FILE))
     #net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     net.cuda()
@@ -95,7 +93,6 @@ def evaluate_threshold(img_ids, cls_threshold, bbox_dict):
     bgtime = time.time()
     encoder = DataEncoder()
     encoder.class_threshold = cls_threshold
-    print('Evaluating..')
     true_objects_num = 0
     pred_objects_num = 0
 
@@ -104,7 +101,7 @@ def evaluate_threshold(img_ids, cls_threshold, bbox_dict):
         loc_preds, cls_preds = net(inputs)
         
         for i in range(len(loc_preds)):
-            boxes, labels, scores = encoder.decode(loc_preds[i].data.cpu(), cls_preds[i].data.cpu(), (settings.IMG_SZ, settings.IMG_SZ))
+            boxes, labels, scores = encoder.decode(loc_preds[i].data, cls_preds[i].data, (settings.IMG_SZ, settings.IMG_SZ))
             pred_objects_num += len(scores)
 
         for img_idx in range(len(inputs)):   
@@ -112,22 +109,22 @@ def evaluate_threshold(img_ids, cls_threshold, bbox_dict):
             if img_id in bbox_dict:
                 true_objects_num += len(bbox_dict[img_id])
 
-        print('{} / {}, {} / {}, {:.2f},  {:.2f}'.format(
+        print('{} / {}, {} / {}, {:.2f},  {:.2f} min'.format(
             batch_size*(batch_idx+1), dloader.num,
             pred_objects_num, true_objects_num, cls_threshold,
             (time.time() - bgtime)/60), end='\r')
 
     print('\n')
-    print('{}/{}, {}, {}\n'.format(pred_objects_num, true_objects_num, pred_objects_num - true_objects_num, cls_threshold))
+    print('=>>> {}/{}, {}, {:.4f}\n'.format(pred_objects_num, true_objects_num, pred_objects_num - true_objects_num, cls_threshold))
 
 def find_threshold():
     img_ids = np.random.permutation(get_val_ids()).tolist()[:2000]
     bbox_dict = load_bbox_dict()
-    cls_threshold = 0.24
-    for i in range(4):
+    cls_threshold = 0.203
+    for i in range(20):
         print('threshold:', cls_threshold)
         evaluate_threshold(img_ids, cls_threshold, bbox_dict)
-        cls_threshold -= 0.01
+        cls_threshold -= 0.001
 
 if __name__ == '__main__':
     predict()

@@ -12,8 +12,10 @@ class DataEncoder:
         self.aspect_ratios = [1/2., 1/1., 2/1.]
         self.scale_ratios = [1., pow(2,1/3.), pow(2,2/3.)]
         self.anchor_wh = self._get_anchor_wh()
-        self.class_threshold = 0.208
+        self.class_threshold = 0.202
+        self.nms_threshold = 0.4
         self.anchor_boxes = self._get_anchor_boxes(torch.Tensor([settings.IMG_SZ, settings.IMG_SZ])).cuda()
+        self.anchor_boxes_cpu = self._get_anchor_boxes(torch.Tensor([settings.IMG_SZ, settings.IMG_SZ]))
 
     def _get_anchor_wh(self):
         '''Compute anchor width and height for each feature map.
@@ -76,9 +78,9 @@ class DataEncoder:
           loc_targets: (tensor) encoded bounding boxes, sized [#anchors,4].
           cls_targets: (tensor) encoded class labels, sized [#anchors,].
         '''
-        input_size = torch.Tensor([input_size,input_size]) if isinstance(input_size, int) \
-                     else torch.Tensor(input_size)
-        anchor_boxes = self._get_anchor_boxes(input_size)
+        #input_size = torch.Tensor([input_size,input_size]) if isinstance(input_size, int) \
+        #             else torch.Tensor(input_size)
+        anchor_boxes = self.anchor_boxes_cpu #self._get_anchor_boxes(input_size)
         
         boxes = change_box_order(boxes, 'xyxy2xywh')
 
@@ -109,7 +111,7 @@ class DataEncoder:
           labels: (tensor) class labels for each box, sized [#obj,].
         '''
         CLS_THRESH = self.class_threshold #0.2
-        NMS_THRESH = 0.5
+        NMS_THRESH = self.nms_threshold #0.5
 
         input_size = torch.Tensor([input_size,input_size]) if isinstance(input_size, int) \
                      else torch.Tensor(input_size)

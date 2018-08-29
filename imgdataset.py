@@ -172,7 +172,7 @@ def test_test_loader():
             break
 
 if __name__ == '__main__':
-    test_test_loader()
-    #test_small_train_loader()
+    #test_test_loader()
+    test_small_train_loader()
     #small_dict, img_ids = load_small_train_ids()
     #print(img_ids[:10])
