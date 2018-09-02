@@ -12,8 +12,8 @@ class DataEncoder:
         self.aspect_ratios = [1/2., 1/1., 2/1.]
         self.scale_ratios = [1., pow(2,1/3.), pow(2,2/3.)]
         self.anchor_wh = self._get_anchor_wh()
-        self.class_threshold = 0.202
-        self.nms_threshold = 0.4
+        self.class_threshold = 0.1 #0.202
+        self.nms_threshold = 0.5
         self.anchor_boxes = self._get_anchor_boxes(torch.Tensor([settings.IMG_SZ, settings.IMG_SZ])).cuda()
         self.anchor_boxes_cpu = self._get_anchor_boxes(torch.Tensor([settings.IMG_SZ, settings.IMG_SZ]))
 
@@ -125,6 +125,7 @@ class DataEncoder:
         boxes = torch.cat([xy-wh/2, xy+wh/2], 1)  # [#anchors,4]
 
         score, labels = cls_preds.sigmoid().max(1)          # [#anchors,]
+        #labels += 1
         ids = score > CLS_THRESH
         if ids.sum() < 0.5:
               return [], [], []

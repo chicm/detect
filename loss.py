@@ -81,7 +81,7 @@ class FocalLoss(nn.Module):
         mask = pos.unsqueeze(2).expand_as(loc_preds)       # [N,#anchors,4]
         masked_loc_preds = loc_preds[mask].view(-1,4)      # [#pos,4]
         masked_loc_targets = loc_targets[mask].view(-1,4)  # [#pos,4]
-        loc_loss = F.smooth_l1_loss(masked_loc_preds, masked_loc_targets, size_average=False)*10.
+        loc_loss = F.smooth_l1_loss(masked_loc_preds, masked_loc_targets, size_average=False)*2.
 
         ################################################################
         # cls_loss = FocalLoss(loc_preds, loc_targets)

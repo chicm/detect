@@ -77,7 +77,7 @@ def predict():
     print(len(prediction_strings))
     print(prediction_strings[:3])
     submission = pd.DataFrame({'ImageId': dloader.img_ids, 'PredictionString': prediction_strings})
-    submission.to_csv('sub3.csv', index=False)
+    submission.to_csv('sub7.csv', index=False)
 
 def evaluate_threshold(img_ids, cls_threshold, bbox_dict):
 
@@ -109,7 +109,7 @@ def evaluate_threshold(img_ids, cls_threshold, bbox_dict):
             if img_id in bbox_dict:
                 true_objects_num += len(bbox_dict[img_id])
 
-        print('{} / {}, {} / {}, {:.2f},  {:.2f} min'.format(
+        print('{} / {}, {} / {}, {:.4f},  {:.2f} min'.format(
             batch_size*(batch_idx+1), dloader.num,
             pred_objects_num, true_objects_num, cls_threshold,
             (time.time() - bgtime)/60), end='\r')
@@ -120,11 +120,11 @@ def evaluate_threshold(img_ids, cls_threshold, bbox_dict):
 def find_threshold():
     img_ids = np.random.permutation(get_val_ids()).tolist()[:2000]
     bbox_dict = load_bbox_dict()
-    cls_threshold = 0.203
+    cls_threshold = 0.18
     for i in range(20):
-        print('threshold:', cls_threshold)
+        print('threshold: {:.4f}'.format(cls_threshold))
         evaluate_threshold(img_ids, cls_threshold, bbox_dict)
-        cls_threshold -= 0.001
+        cls_threshold -= 0.002
 
 if __name__ == '__main__':
     predict()
